@@ -21,34 +21,33 @@
     <header><h1>Entrar</h1></header>
 
     <p>Não possui cadastro? <a href="{% url 'cadastro' %}" >Cadastre-se</a></p>
-    <section>
+    <div class="container">
+        <section id="secao1">
 
-        <form  method="post" class="meu-formulario">
-            {% csrf_token %}
-            <p class="label">USUARIO</p>
-            <input type="text" id="usuario"  name="username" required autofocus>
-            <p class="label">SENHA</p>
-            <input type="password" id="password"  name="password" required>
-
-            <div>
-                {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li class="{{ message.tags }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-
-            </div>
-               
-        <input type="submit" class="input-botao">  
-        </form>  
-
-        
-
-    </section>
+            <form  method="post" class="meu-formulario">
+                {% csrf_token %}
+                <p class="label">USUARIO</p>
+                <input type="text" id="usuario"  name="username" required autofocus>
+                <p class="label">SENHA</p>
+                <input type="password" id="password"  name="password" required>
     
+                <div>
+                    {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li class="{{ message.tags }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+    
+    
+                </div>
+                   
+            <input type="submit" class="input-botao">  
+            </form>  
+
+        </section>
+    </div>
     <script src="{% static 'scripts.js' %}"></script>
 </body>
 </html>

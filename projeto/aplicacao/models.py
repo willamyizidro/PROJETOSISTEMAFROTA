@@ -37,9 +37,10 @@ class Veiculo(models.Model):
 
 
 class TipoManutencao(models.Model):
-    produto = models.CharField(max_length= 15)
+    produto = models.CharField(max_length= 30)
     tempoTroca = models.IntegerField()
     kmTroca = models.IntegerField()
+    valor = models.DecimalField(max_digits=5,decimal_places=2)
 
     def __str__(self):
         return self.produto
@@ -71,12 +72,12 @@ class Abastecimentos(models.Model):
     data = models.DateField()
     litros = models.DecimalField(max_digits=5, decimal_places=2)
     kmatual = models.IntegerField()
-    km_anterior = models.IntegerField(null=True)
+    km_anterior = models.IntegerField(null=True, blank=True)
     mediaVeiculo = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.km_anterior:
-            ultimo_abastecimento = Abastecimentos.objects.filter(veiculo=self.veiculo).order_by('-data').first()
+            ultimo_abastecimento = Abastecimentos.objects.filter(veiculo=self.veiculo).order_by('-data','-kmatual').first()
             
             if ultimo_abastecimento:
                 self.km_anterior = ultimo_abastecimento.kmatual

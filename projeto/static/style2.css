@@ -4,12 +4,7 @@ body{
     background-color:#c5c5ce;
     margin: 0;
     padding: 0;
-    background-image: url('logo.png'),linear-gradient(to right, #00010e, #525252);
-    background-size: 100%; 
-    background-attachment: fixed;
-    background-position: center center;
-    background-repeat: no-repeat;
-    opacity: 1;
+
 }
 
 /* Define o header */
@@ -239,5 +234,5 @@ input[type="Email"]{
 
 /* Mensagens informativas */
 .info-message {
-    color: white;
+    color: rgb(94, 255, 0);
 }

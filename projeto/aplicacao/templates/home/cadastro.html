@@ -20,39 +20,36 @@
         <img src="{% static 'boneco_login.png' %}" >
     </div>
     <header><h1>Cadastrar usuário</h1></header>
-    
-    <section>
-    <p>Já registrado? <a href="accounts/login/" >Conecte-se</a></p>
-
-
-
-
-    <form action="" method="POST" class="meu-formulario">
-        {% csrf_token %}
-        <p class="label">NOME</p>
-        {{ form.nome|default:'' }}
-        <p class="label">USUARIO</p>
-        {{ form.usuario|default:'' }}
-        <p class="label">EMAIL</p>
-        {{ form.email|default:'' }}
-        <p class="label">SENHA</p>
-        {{ form.senha }}
-        <p class="label">CONFIRME A SENHA</p>
-        {{ form.conf_senha}}
-        <div>
-        {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li class="{{ message.tags }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        </div>
-           
-    <input type="submit" class="input-botao">  
-    </form>  
-</section>
-  
+    Já registrado? <a href="accounts/login/" >Conecte-se</a>
+    <div class="container">
+        <section id="secao1">
+            
+            <form action="" method="POST" class="meu-formulario">
+                {% csrf_token %}
+                <p class="label">NOME</p>
+                {{ form.nome|default:'' }}
+                <p class="label">USUARIO</p>
+                {{ form.usuario|default:'' }}
+                <p class="label">EMAIL</p>
+                {{ form.email|default:'' }}
+                <p class="label">SENHA</p>
+                {{ form.senha }}
+                <p class="label">CONFIRME A SENHA</p>
+                {{ form.conf_senha}}
+                <div>
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li class="{{ message.tags }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                </div>
+                   
+            <input type="submit" class="input-botao">  
+            </form>  
+        </section>
+    </div>
 
     <script src="{% static 'scripts.js' %}" ></script>
 

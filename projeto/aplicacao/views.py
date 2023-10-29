@@ -75,7 +75,7 @@ def inicial(request):
 
 
 
-
+@login_required
 def cadastrarMotorista(request):
     if request.method == "GET":
 
@@ -94,16 +94,92 @@ def cadastrarMotorista(request):
      
     return render(request, 'home/motorista/cadastrarMotorista.html', {"form": MotoristaForm})
 
-
-
-def informarAbastecimento(request):
-    return render(request ,'home/abastecimento/informarAbastecimento.html')
-
+@login_required
 def cadastroManutencao(request):
-    return render(request ,'home/manutencao/cadastroManutencao.html')
+    if request.method == "GET":
+        return render(request ,'home/manutencao/cadastroManutencao.html', {"form": TipoManutencoesForms})
+    else:
+        manutAux = TipoManutencoesForms(request.POST)
+        if manutAux.is_valid():
+            manut = TipoManutencao()
+            manut.produto = manutAux.cleaned_data['produto']
+            manut.tempoTroca = manutAux.cleaned_data['tempoTroca']
+            manut.kmTroca = manutAux.cleaned_data['kmTroca']
+            manut.valor = manutAux.cleaned_data['valor']
+            manut.save()
+            messages.success(request, 'Manutenção salva.', extra_tags='sucess-message')
+            return redirect('cadastroManutencao')
+        else:
+            messages.error(request, 'Confira os dados e tente novamente', extra_tags='error-message')
+            return render(request ,'home/manutencao/cadastroManutencao.html', {"form": TipoManutencoesForms})
 
+
+@login_required
+def cadastroVeiculo(request):
+    if request.method == "GET":
+        return render(request ,'home/veiculo/cadastroVeiculo.html', {"form": VeiculoForms})
+    else:
+        veicAux = VeiculoForms(request.POST)
+        if veicAux.is_valid():
+            veiculo = Veiculo()
+            veiculo.placa = veicAux.cleaned_data['placa']
+            veiculo.chassi = veicAux.cleaned_data['chassi']
+            veiculo.marca = veicAux.cleaned_data['marca']
+            veiculo.modelo = veicAux.cleaned_data['modelo']
+            veiculo.tara = veicAux.cleaned_data['tara']
+            veiculo.tamanho = veicAux.cleaned_data['tamanho']
+            veiculo.save()
+            messages.success(request, 'Veiculo salvo.', extra_tags='sucess-message')
+            return redirect('cadastroVeiculo')
+        else:
+            messages.error(request, 'Confira os dados e tente novamente', extra_tags='error-message')
+            return render(request ,'home/manutencao/cadastroManutencao.html', {"form": VeiculoForms})
+        
+
+@login_required
 def informarManutencao(request):
-    return render(request ,'home/manutencao/informarManutencao.html')
+    if request.method == "GET":
+        return render(request ,'home/manutencao/informarManutencao.html', {"form": InformarManutencaoForm})
+    else:
+        manutAux = InformarManutencaoForm(request.POST)
+        if manutAux.is_valid():
+            manut = Manutencao()
+            manut.manutencao = manutAux.cleaned_data['manutencao']
+            manut.veiculo = manutAux.cleaned_data['veiculo']
+            manut.dataAtual = manutAux.cleaned_data['dataAtual']
+            manut.kmAtual = manutAux.cleaned_data['kmAtual']
+            manut.save()
+
+            messages.success(request, 'Manutenção Salva.', extra_tags='sucess-message')
+            return redirect('informarManutencao')
+        else:
+            messages.error(request, 'Confira os dados e tente novamente', extra_tags='error-message')
+            return render(request ,'home/manutencao/informarManutencao.html', {"form": VeiculoForms})
+
+
+
+@login_required
+def informarAbastecimento(request):
+    if request.method == "GET":
+        return render(request ,'home/abastecimento/informarAbastecimento.html', {"form": InformarAbastecimentoForms})
+    else:
+        abast = InformarAbastecimentoForms(request.POST)
+        if abast.is_valid():
+            abastecimento = Abastecimentos()
+            abastecimento.veiculo = abast.cleaned_data['veiculo']
+            abastecimento.data = abast.cleaned_data['data']
+            abastecimento.litros = abast.cleaned_data['litros']
+            abastecimento.kmatual = abast.cleaned_data['kmatual']
+            abastecimento.save()
+
+            messages.success(request, 'Abatecimento Salvo.', extra_tags='sucess-message')
+            return redirect('informarAbastecimento')
+        else:
+            messages.error(request, 'Confira os dados e tente novamente', extra_tags='error-message')
+            return render(request ,'home/abastecimento/informarAbastecimento.html', {"form": InformarAbastecimentoForms})
+
+
+
 
 def gerarRelatorio(request):
     return render(request ,'home/relatorios/gerarRelatorio.html')
@@ -111,5 +187,3 @@ def gerarRelatorio(request):
 def acessarVeiculo(request):
     return render(request ,'home/veiculo/acessarVeiculo.html')
 
-def cadastroVeiculo(request):
-    return render(request ,'home/veiculo/cadastroVeiculo.html')

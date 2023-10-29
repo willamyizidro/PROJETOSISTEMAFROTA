@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controlcar</title>
     <link rel="shortcut icon" href="{% static 'icone_pagina.ico' %}" type="image/x-icon">
-    <link rel="stylesheet" href="{% static 'style2.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
     
 <body id="conteudo">
@@ -54,10 +54,15 @@
             <li class="nav-item">
                 <a href="http://127.0.0.1:8000/accounts/logout">SAIR</a>
             </li>
-
         </ul>
         <img src="{% static 'boneco_login.png' %}" alt="Sua Imagem">
     </div>
-    <h1></h1>
+    <div class="container">
+        <section id="secao2">
+            {% block content %}
+            {% endblock %}
+        </section>
+    </div>
+    
 </body>
 </html>

@@ -4,9 +4,13 @@ body{
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
-    background: linear-gradient(to right, #00010e, #525252);
+    background-image: url('/static/fundo.png'),linear-gradient(to right, #00010e, #525252);
+    background-size: 100%; 
+    background-attachment: fixed;
+    background-position: center center;
+    background-repeat: no-repeat;
+    opacity: 1;
     text-align: center;
-
 }
 
 
@@ -23,7 +27,7 @@ header{
 /* navbar superior */
 .navbar {
     background-image: linear-gradient(to right, #000000, #3533cd);
-    overflow: hidden;
+    overflow: visible;
     height: 50px;
     position: fixed;  
     top: 0;
@@ -51,8 +55,8 @@ header{
     text-align: center;
 }
 
-/* Define a seção */
-section {
+/* Define a seção das telas de login e cadastro*/
+#secao1 {
     max-width: 400px;
     margin: 0 auto;
     padding: 0px;
@@ -60,9 +64,27 @@ section {
     margin-top: 0;
     font-family: 'DM Sans';
     font-size: 15px;
+    text-align: center;
     
 }
-
+/* Define o container*/
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    height: 100vh;
+}
+/* Define a seção das telas de funcionalidades*/
+#secao2 {
+    max-width: 400px;
+    margin: auto;
+    padding: 0px;
+    border-radius: 2px;
+    font-family: 'DM Sans';
+    font-size: 15px;
+    text-align: center;
+}
 p.label {
     margin: 10px 10px;
     display: block;
@@ -108,7 +130,7 @@ input.label {
     height: 50px;
     cursor: pointer;
     text-align: center;
-    margin-top: 15px;
+    margin-top: 10%;
 }
 .input-botao:hover {
     background-image: linear-gradient(to right, #000000, #3633cdd0);
@@ -127,6 +149,7 @@ input.label {
     margin-bottom: 10;
     padding: 20px;
     border-radius: 5px;
+    text-align: center;
 }
 
 
