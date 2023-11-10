@@ -2,7 +2,7 @@
 
 {% block content %}
     <header><h1>Gerar Relatorios</h1></header>
-    <form method="GET" class="meu-formulario">
+    <form method="GET" class="meu-formulario" action="{% url 'generate_pdf' %}" >
         {% csrf_token %}
         <p class="label">Veiculo</p>
         {{ form.veiculo}}
@@ -15,7 +15,8 @@
         </ul>
     {% endif %}
 
-    <button type="submit" class="input-botao">Enviar</button>
+    <button type="submit" class="input-botao" id="generate-pdf">Enviar</button>    
+
     </form>
 
 

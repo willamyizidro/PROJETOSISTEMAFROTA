@@ -35,4 +35,6 @@ urlpatterns = [
     path('editarVeiculo/<int:id>', views.editarVeiculo, name='editarVeiculo'),
     path('updateVeiculo/<int:id>', views.updateVeiculo, name='updateVeiculo'),
     path('relatorio/', views.relatorioVeiculo, name='relatorio'),
+    path('generate-pdf/', views.GeneratePDF.as_view(), name='generate_pdf'),
+    path('teste/' , views.teste , name="teste")
     ]

@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 from reportlab.platypus import Spacer
-
+from django.views import View
 
 
 def is_admin(user):
@@ -514,3 +514,20 @@ def updateManutencao(request, id):
 
     messages.success(request, 'Salvo.', extra_tags='sucess-message')
     return redirect('visualizarManutencao')
+
+
+class GeneratePDF(View):
+    def get(self, request, *args, **kwargs):
+        # Crie um objeto PDF
+        response = HttpResponse(content_type='application/pdf')
+
+        # Use o ReportLab para gerar o conteúdo do PDF
+        p = canvas.Canvas(response)
+        p.drawString(100, 100, "Hello world.")
+        p.showPage()
+        p.save()
+
+        return response
+    
+def teste(request):
+    return render(request,'home/teste.html')
