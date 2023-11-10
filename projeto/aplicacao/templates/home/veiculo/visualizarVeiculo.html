@@ -1,0 +1,32 @@
+{% extends 'home/inicial.html' %}
+
+{% block content %}
+    <header><h1> VEICULOS</h1></header>
+   
+    <form method="GET" action="{% url 'buscarVeiculo' %}">
+        <input type="text" name="placa" placeholder="Digite a placa" class="input">
+        <button type="submit" class="input-botao">Pesquisar</button>
+    </form>
+
+    <div>    
+        {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+        {% endif %}
+    </div>
+    
+    <div class="editar-container">
+        <ul>
+            {% for veiculo in veiculos %}
+                <li>{{ veiculo.placa }} <a href="{% url 'editarVeiculo' veiculo.id %}">editar</a></li>
+            {% endfor %}
+        </ul>
+        
+    </div>
+
+
+
+    {% endblock %}

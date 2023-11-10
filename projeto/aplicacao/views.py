@@ -1,14 +1,23 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 from .forms import *
 from django.contrib import messages
 from .consultas import *
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required , user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as login_django, logout 
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.platypus import Spacer
 
 
+
+def is_admin(user):
+    return user.is_superuser
 
 
 def home(request):
@@ -71,7 +80,8 @@ def login(request):
 
 @login_required
 def inicial(request):
-    return render(request, 'home/inicial.html')
+    message = request.GET.get('message', '')
+    return render(request, 'home/inicial.html', {'message': message})
 
 
 
@@ -93,6 +103,8 @@ def cadastrarMotorista(request):
             
      
     return render(request, 'home/motorista/cadastrarMotorista.html', {"form": MotoristaForm})
+
+
 
 @login_required
 def cadastroManutencao(request):
@@ -178,12 +190,327 @@ def informarAbastecimento(request):
             messages.error(request, 'Confira os dados e tente novamente', extra_tags='error-message')
             return render(request ,'home/abastecimento/informarAbastecimento.html', {"form": InformarAbastecimentoForms})
 
-
-
-
+@login_required
 def gerarRelatorio(request):
-    return render(request ,'home/relatorios/gerarRelatorio.html')
+    if request.method == "GET":
+        veic = RelatorioForms(request.GET)
+        if veic.is_valid():
+            placa = veic.cleaned_data['veiculo']
+            veiculo = Veiculo.objects.get(placa=placa)
+            dados_de_abastecimentos = Abastecimentos.objects.filter(veiculo=veiculo)
+            dados_de_manutencao = Manutencao.objects.filter(veiculo=veiculo)
 
+            response = FileResponse(generate_abastecimentos_pdf(dados_de_abastecimentos,dados_de_manutencao))
+            response['Content-Type'] = 'application/pdf'
+            response['Content-Disposition'] = 'inline; filename="relatorio_abastecimentos.pdf"'
+            return response
+    return render(request ,'home/relatorios/gerarRelatorio.html', {"form" : RelatorioForms})
+
+
+
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
 def acessarVeiculo(request):
     return render(request ,'home/veiculo/acessarVeiculo.html')
 
+
+def relatorioVeiculo(request):
+    veiculo = Veiculo.objects.get(placa=veiculo)
+    dados_de_abastecimentos = Abastecimentos.objects.filter(veiculo=veiculo)
+    dados_de_manutencao = Manutencao.objects.filter(veiculo=veiculo)
+
+    response = HttpResponse(generate_abastecimentos_pdf(dados_de_abastecimentos, dados_de_manutencao), content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="relatorio_abastecimentos.pdf"'
+    return response
+
+
+def generate_abastecimentos_pdf(dados_de_abastecimentos, dados_de_manutencao):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+    elements = []
+    title1 = Table([['ABASTECIMENTOS']])
+    title2 = Table([['MANUTENÇÕES']])
+    # Adicione os dados à tabela
+    abast = [['Veículo', 'Data', 'Litros', 'KM Atual', 'Media Calculada']]
+    for abastecimento in dados_de_abastecimentos:
+        abast.append([abastecimento.veiculo, abastecimento.data, abastecimento.litros, abastecimento.kmatual, abastecimento.mediaVeiculo])
+    # Crie a tabela
+        table = Table(abast)
+
+    # Crie a tabela
+    table = Table(abast)
+
+
+    manut = [['Veículo', 'Data', 'Data Proxima', 'Km Manutenção', 'KM Proxima ']]
+    for manutencao in dados_de_manutencao:
+        manut.append([manutencao.veiculo, manutencao.dataAtual, manutencao.dataProximaMan, manutencao.kmAtual, manutencao.kmProximaMan ])
+
+    table2 = Table(manut)
+
+    # Estilize a tabela
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ])
+    table.setStyle(style)
+    table2.setStyle(style)
+    title1.setStyle(style)
+    title2.setStyle(style)
+    elements.append(Spacer(1, 12))
+    elements.append(title1)
+    elements.append(table)
+    elements.append(Spacer(1, 12))
+    elements.append(title2)
+    elements.append(table2)
+    doc.build(elements)
+
+    buffer.seek(0)
+    return buffer
+
+
+
+# EDITAR MOTORISTAS
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def visualizarMotoristas(request):
+    motoristas = Motorista.objects.all().order_by('nome')
+    return render(request, "home/motorista/visualizarMotorista.html", {"motoristas":motoristas} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def editarMotorista(request, id):
+    motorista = Motorista.objects.get(id=id)
+    form = MotoristaFormCustom(motorista)
+    return render(request, "home/motorista/editarMotorista.html", {"form":form,"motorista": motorista} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def buscar_motoristas(request):
+    nome = request.GET.get('nome')
+    if nome:
+        motoristas = Motorista.objects.filter(nome__icontains=nome)
+        if not motoristas:
+            messages.error(request, 'NAO ENCONTRADO NENHUM VALOR', extra_tags='error-message')
+            motoristas = Motorista.objects.all()
+    else:
+        messages.error(request, 'DIGITE ALGUM VALOR', extra_tags='error-message')
+        motoristas = Motorista.objects.all()
+    return render(request, 'home/motorista/visualizarMotorista.html', {'motoristas': motoristas})
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def updateMotorista(request, id):
+    motorista = Motorista.objects.get(id=id)
+    if request.method == "POST":
+        novoNome = request.POST.get("nome")
+        novoEndereco = request.POST.get("endereco")
+        novaCnh = request.POST.get("cnh")
+        motorista.nome = novoNome
+        motorista.endereco = novoEndereco
+        motorista.cnh = novaCnh
+        motorista.save()
+
+    messages.success(request, 'Salvo.', extra_tags='sucess-message')
+    return redirect('visualizarMotoristas')
+
+
+# EDITAR VEICULOS
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def visualizarVeiculo(request):
+    veiculos = Veiculo.objects.all().order_by('placa')
+    return render(request, 'home/veiculo/visualizarVeiculo.html', {"veiculos":veiculos} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def editarVeiculo(request, id):
+    veiculo = Veiculo.objects.get(id=id)
+    form = VeiculoFormCustom(veiculo)
+    return render(request, "home/veiculo/editarVeiculo.html", {"form":form,"veiculo": veiculo} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def buscarVeiculo(request):
+    placa = request.GET.get('placa')
+    if placa:
+        veiculos = Veiculo.objects.filter(placa__icontains=placa)
+        if not veiculos:
+            messages.error(request, 'NAO ENCONTRADO NENHUM VEICULO', extra_tags='error-message')
+            veiculos = Veiculo.objects.all()
+    else:
+        messages.error(request, 'DIGITE ALGUM VALOR', extra_tags='error-message')
+        veiculos = Veiculo.objects.all()
+    return render(request, 'home/veiculo/visualizarVeiculo.html', {'veiculos': veiculos})
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def updateVeiculo(request, id):
+    veiculo = Veiculo.objects.get(id=id)
+    if request.method == "POST":
+        veiculo.placa = request.POST.get("placa")
+        veiculo.chassi = request.POST.get("chassi")
+        veiculo.marca = request.POST.get("marca")
+        veiculo.modelo = request.POST.get("modelo")
+        veiculo.tara = request.POST.get("tara")
+        veiculo.tamanho = request.POST.get("tamanho")
+        veiculo.save()
+
+    messages.success(request, 'Salvo.', extra_tags='sucess-message')
+    return redirect('visualizarVeiculo')
+
+
+
+
+# EDITAR TIPO MENUTENÇÃO
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def visualizarTipoManutencao(request):
+    manutencoes = TipoManutencao.objects.all().order_by('produto')
+    return render(request, 'home/manutencao/visualizarTipoManutencao.html', {"manutencoes":manutencoes} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def editarTipoManutencao(request, id):
+    manutencao = TipoManutencao.objects.get(id=id)
+    form = ManutencaoFormCustom(manutencao)
+    return render(request, "home/manutencao/editarTipoManutencao.html", {"form":form,"manutencao": manutencao} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def buscarTipoManutencao(request):
+    nome = request.GET.get('nome')
+    if nome:
+        manutencoes = TipoManutencao.objects.filter(produto__icontains=nome)
+        if not manutencoes:
+            messages.error(request, 'NAO ENCONTRADO NENHUMA MANUTENÇÃO', extra_tags='error-message')
+            manutencoes = TipoManutencao.objects.all()
+    else:
+        messages.error(request, 'DIGITE ALGUM VALOR', extra_tags='error-message')
+        manutencoes = TipoManutencao.objects.all()
+    return render(request, 'home/manutencao/visualizarTipoManutencao.html', {'manutencoes': manutencoes})
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def updateTipoManutencao(request, id):
+    manutencao = TipoManutencao.objects.get(id=id)
+    if request.method == "POST":
+        manutencao.produto = request.POST.get("produto")
+        manutencao.tempoTroca = request.POST.get("tempoTroca")
+        manutencao.kmTroca = request.POST.get("kmTroca")
+        manutencao.valor = request.POST.get("valor")
+        manutencao.save()
+
+    messages.success(request, 'Salvo.', extra_tags='sucess-message')
+    return redirect('visualizarTipoManutencao')
+
+
+# EDITAR ABASTECIMENTO
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def visualizarAbastecimento(request):
+    abastecimentos = Abastecimentos.objects.all().order_by('veiculo','data')
+    return render(request, 'home/abastecimento/visualizarAbastecimento.html', {"abastecimentos":abastecimentos} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def editarAbastecimento(request, id):
+    abastecimento = Abastecimentos.objects.get(id=id)
+    form = AbastecimentoFormCustom(abastecimento)
+    datafor = abastecimento.data.strftime('%Y-%m-%d')
+    return render(request, "home/abastecimento/editarAbastecimento.html", {"form":form,"abastecimento": abastecimento, "datafor":datafor} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def buscarAbastecimento(request):
+    veiculo = request.GET.get('placa')
+    if veiculo:
+        abastecimentos = Abastecimentos.objects.filter(veiculo__placa__icontains=veiculo)
+        if not abastecimentos:
+            messages.error(request, 'NAO ENCONTRADO NENHUM VEICULO', extra_tags='error-message')
+            abastecimentos = Abastecimentos.objects.all()
+    else:
+        messages.error(request, 'DIGITE ALGUM VALOR', extra_tags='error-message')
+        abastecimentos = Abastecimentos.objects.all()
+    return render(request, 'home/abastecimento/visualizarAbastecimento.html', {'abastecimentos': abastecimentos})
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def updateAbastecimento(request, id):
+    abastecimentoaux = Abastecimentos.objects.get(id=id)
+    if request.method == "POST":
+        abast = InformarAbastecimentoForms(request.POST)
+        if abast.is_valid():
+            abastecimento = Abastecimentos()
+            abastecimento.veiculo = abast.cleaned_data['veiculo']
+            abastecimento.data = abast.cleaned_data['data']
+            abastecimento.litros = abast.cleaned_data['litros']
+            abastecimento.kmatual = abast.cleaned_data['kmatual']
+            abastecimentoaux.delete()
+            abastecimento.save()
+            
+
+    messages.success(request, 'Salvo.', extra_tags='sucess-message')
+    return redirect('visualizarAbastecimento')
+
+
+# EDITAR MANUTENÇÃO ADICIONADA
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def visualizarManutencao(request):
+    manutencoes = Manutencao.objects.all().order_by('veiculo','dataAtual')
+    return render(request, 'home/manutencao/visualizarManutencao.html', {"manutencoes":manutencoes} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def editarManutencao(request, id):
+    manutencao = Manutencao.objects.get(id=id)
+    form = InformarManutencaoFormCustom(manutencao)
+    datafor = manutencao.dataAtual.strftime('%Y-%m-%d')
+    return render(request, "home/manutencao/editarManutencao.html", {"form":form,"manutencao": manutencao, "datafor":datafor} )
+
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def buscarManutencao(request):
+    veiculo = request.GET.get('placa')
+    if veiculo:
+        manutencoes = Manutencao.objects.filter(veiculo__placa__icontains=veiculo)
+        if not manutencoes:
+            messages.error(request, 'NAO ENCONTRADO NENHUM VEICULO', extra_tags='error-message')
+            manutencoes = Manutencao.objects.all()
+    else:
+        messages.error(request, 'DIGITE ALGUM VALOR', extra_tags='error-message')
+        manutencoes = Manutencao.objects.all()
+    return render(request, 'home/manutencao/visualizarManutencao.html', {'manutencoes': manutencoes})
+
+@login_required
+@user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
+def updateManutencao(request, id):
+    manutencaoaux = Manutencao.objects.get(id=id)
+    if request.method == "POST":
+        manutAux = InformarManutencaoForm(request.POST)
+        manutencaonova = Manutencao()
+        manutencaoaux.delete()
+        if manutAux.is_valid():
+            manutencaonova.veiculo = manutAux.cleaned_data['veiculo']
+            manutencaonova.manutencao = manutAux.cleaned_data['manutencao']
+            manutencaonova.dataAtual = manutAux.cleaned_data['dataAtual']
+            manutencaonova.kmAtual = manutAux.cleaned_data['kmAtual']
+            manutencaonova.save()
+                
+
+    messages.success(request, 'Salvo.', extra_tags='sucess-message')
+    return redirect('visualizarManutencao')

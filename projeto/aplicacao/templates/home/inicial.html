@@ -52,6 +52,16 @@
                 </ul>
             </li>
             <li class="nav-item">
+                <a >EDITAR</a>
+                <ul class="sub-menu">
+                    <li class="sub-item"><a href="{% url 'visualizarVeiculo' %}">VEICULO</a></li>
+                    <li class="sub-item"><a href="{% url 'visualizarTipoManutencao' %}">TIPO MANUTENÇÃO</a></li>
+                    <li class="sub-item"><a href="{% url 'visualizarManutencao' %}">MANUTENÇÃO</a></li>
+                    <li class="sub-item"><a href="{% url 'visualizarMotoristas' %}">MOTORISTA</a></li>
+                    <li class="sub-item"><a href="{% url 'visualizarAbastecimento' %}">ABASTECIMENTO</a></li>
+                </ul>
+            </li>
+            <li class="nav-item">
                 <a href="http://127.0.0.1:8000/accounts/logout">SAIR</a>
             </li>
         </ul>
@@ -61,8 +71,16 @@
         <section id="secao2">
             {% block content %}
             {% endblock %}
+            <header>
+                {% if message %}
+               <div class="alert alert-warning">
+                 {{ message }}
+               </div>
+             {% endif %}
+             </header>
         </section>
     </div>
     
 </body>
 </html>
+
