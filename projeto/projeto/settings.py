@@ -78,13 +78,14 @@ WSGI_APPLICATION = 'projeto.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgres://postgres:FEGDcAF-dC-f4B46C55eCc6fc2ECf2BD@postgres.railway.internal:5432/railway.',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgres://postgres:FEGDcAF-dC-f4B46C55eCc6fc2ECf2BD@postgres.railway.internal:5432/railway.',
+#         conn_max_age=600,
+#         conn_health_checks=True,
+#     )
+# }
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -95,6 +96,14 @@ DATABASES = {
 #         'PORT': '5432'
 #     }
 # }
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgres://postgres:FEGDcAF-dC-f4B46C55eCc6fc2ECf2BD@viaduct.proxy.rlwy.net:41375/railway',
+        conn_max_age=600,
+        ssl_require=not DEBUG
+    )
+}
 
 # DATABASES = {
 #     "default": {
