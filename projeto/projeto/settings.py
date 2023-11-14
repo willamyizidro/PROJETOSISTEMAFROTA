@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import django_on_heroku
 from decouple import config
+import dj_database_url 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -76,6 +77,14 @@ WSGI_APPLICATION = 'projeto.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default='postgres://postgres:FEGDcAF-dC-f4B46C55eCc6fc2ECf2BD@postgres.railway.internal:5432/railway.',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -87,12 +96,12 @@ WSGI_APPLICATION = 'projeto.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "mydatabase",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": "mydatabase",
+#     }
+# }
 
 
 # Password validation
