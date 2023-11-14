@@ -18,7 +18,7 @@ psycopg2==2.9.9
 psycopg2-binary==2.9.9
 PyPDF2==2.12.1
 reportlab==4.0.6
-rlextra==4.0.6
+
 sqlparse==0.4.4
 svglib==1.4.1
 tinycss2==1.2.1
