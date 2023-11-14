@@ -4,6 +4,15 @@
     <header><h1>Acessar Veiculo</h1></header>
 
 
-    <a href="{% url 'relatorio' %}" target="_blank">Abrir Relatório em Nova Guia</a>
+
+    <select id="SelecionarPlaca" name="Placas">
+        {% for veiculo in veiculos %}
+            <option value="{{ veiculo.id }}">
+                {{ veiculo.placa }}
+            </option>
+        {% endfor %}
+    </select>
+    
+    <button class="input-botao" onclick="relatorioVeiculo()">Vizualizar</button>
 
     {% endblock %}

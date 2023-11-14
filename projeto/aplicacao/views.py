@@ -213,11 +213,12 @@ def gerarRelatorio(request):
 @login_required
 @user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
 def acessarVeiculo(request):
-    return render(request ,'home/veiculo/acessarVeiculo.html')
+    veiculos = Veiculo.objects.all()
+    return render(request ,'home/veiculo/acessarVeiculo.html',{"veiculos":veiculos})
 
 
 def relatorioVeiculo(request):
-    veiculo = Veiculo.objects.get(placa=veiculo)
+    veiculo = Veiculo.objects.get()
     dados_de_abastecimentos = Abastecimentos.objects.filter(veiculo=veiculo)
     dados_de_manutencao = Manutencao.objects.filter(veiculo=veiculo)
 
@@ -327,7 +328,7 @@ def updateMotorista(request, id):
 # EDITAR VEICULOS
 @user_passes_test(is_admin, login_url='/inicial/?message=PAGINA SOLICITADA SO PODE SER ACESSADA POR ADMIN.' ) # teste para saber se é administrador 
 def visualizarVeiculo(request):
-    veiculos = Veiculo.objects.all().order_by('placa')
+    veiculos = Veiculo.objects.all()
     return render(request, 'home/veiculo/visualizarVeiculo.html', {"veiculos":veiculos} )
 
 
